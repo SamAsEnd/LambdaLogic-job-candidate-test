@@ -6,6 +6,9 @@ import com.lambdalogic.test.booking.model.Booking;
 import com.lambdalogic.test.booking.model.CurrencyAmount;
 
 import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Implementations of this interface are intended for adding up the total amount, the paid amount and open amount of a
@@ -44,7 +47,21 @@ public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmount
      */
     @Override
     public void calculate(List<Booking> bookingList, Long invoiceRecipientID) throws InconsistentCurrenciesException {
+        Supplier<Stream<Booking>> supplier = () -> bookingList
+                .stream()
+                .filter(booking -> (long) booking.getInvoiceRecipientPK() == (long) invoiceRecipientID);
 
+        List<String> currencies = supplier.get()
+                .map(Booking::getCurrency)
+                .distinct()
+                .limit(2)
+                .collect(Collectors.toList());
+
+        if (currencies.size() > 1) {
+            throw new InconsistentCurrenciesException(currencies.get(0), currencies.get(1));
+        }
+
+        // ...
     }
 
     /**
