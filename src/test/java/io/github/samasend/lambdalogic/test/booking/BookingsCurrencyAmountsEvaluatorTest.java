@@ -12,8 +12,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static java.math.BigDecimal.ZERO;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class BookingsCurrencyAmountsEvaluatorTest {
 
@@ -30,6 +29,8 @@ public class BookingsCurrencyAmountsEvaluatorTest {
                 getBooking(10001L, new Price(new BigDecimal("100"), "ETB", ZERO, true)),
                 getBooking(10001L, new Price(new BigDecimal("100"), "USD", ZERO, true))
         ), 10001L);
+
+        fail("Should NOT reach here");
     }
 
     @Test(expected = Test.None.class)
@@ -38,6 +39,8 @@ public class BookingsCurrencyAmountsEvaluatorTest {
                 getBooking(10001L, new Price("USD")),
                 getBooking(10002L, new Price("ETB"))
         ), 10001L);
+
+        assertTrue(true);
     }
 
     @Test(expected = Test.None.class)
@@ -46,6 +49,8 @@ public class BookingsCurrencyAmountsEvaluatorTest {
                 getBooking(10001L, new Price(new BigDecimal("100"), "ETB", ZERO, true)),
                 getBooking(10001L, new Price(ZERO, "USD", ZERO, false), ZERO)
         ), 10001L);
+
+        assertTrue(true);
     }
 
     @Test(expected = Test.None.class)
