@@ -8,11 +8,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Random;
 
 import static java.math.BigDecimal.ZERO;
+import static org.junit.Assert.assertNull;
 
 public class BookingsCurrencyAmountsEvaluatorTest {
 
@@ -45,6 +47,15 @@ public class BookingsCurrencyAmountsEvaluatorTest {
                 getBooking(10001L, new Price(new BigDecimal("100"), "ETB", ZERO, true)),
                 getBooking(10001L, new Price(ZERO, "USD", ZERO, false), ZERO)
         ), 10001L);
+    }
+
+    @Test(expected = Test.None.class)
+    public void emptyCalculationGivesNull() throws InconsistentCurrenciesException {
+        evaluator.calculate(new ArrayList<>(), 10001L);
+
+        assertNull(evaluator.getTotalAmount());
+        assertNull(evaluator.getTotalPaidAmount());
+        assertNull(evaluator.getTotalOpenAmount());
     }
 
     protected Booking getBooking(Long invoiceRecipientID, Price mainPrice) {
