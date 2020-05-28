@@ -78,6 +78,35 @@ public class BookingsCurrencyAmountsEvaluatorTest {
         assertEquals(expected0Point12, evaluator.getTotalOpenAmount());
     }
 
+    @Test(expected = Test.None.class)
+    public void testCalculationHandleRoundingProblems() throws InconsistentCurrenciesException {
+        CurrencyAmount expected1Point19 = new CurrencyAmount(new BigDecimal("1.19"), "€");
+        CurrencyAmount expected0 = new CurrencyAmount(ZERO, "€");
+
+        evaluator.calculate(Arrays.asList(
+                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+
+                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+
+                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+
+                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+
+                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false))
+        ), 10001L);
+
+        assertEquals(expected1Point19, evaluator.getTotalAmount());
+
+        assertEquals(expected0, evaluator.getTotalPaidAmount());
+
+        assertEquals(expected1Point19, evaluator.getTotalOpenAmount());
+    }
+
     protected Booking getBooking(Long invoiceRecipientID, Price mainPrice) {
         return getBooking(invoiceRecipientID, mainPrice, null);
     }
