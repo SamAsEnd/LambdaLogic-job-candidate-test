@@ -12,7 +12,7 @@ import java.util.List;
  * list of {@link Booking}s taking care that rounding errors are not summed up.
  * <p>
  * First, {@link #calculate(List, Long)} should be called. Afterwards the methods {@link #getTotalAmount()},
- * {@link #getTotalOpenAmount()} and {@link #getPaidAmount()} can be called to get the results.
+ * {@link #getTotalOpenAmount()} and {@link #getTotalPaidAmount()} ()} can be called to get the results.
  * <p>
  * Implementations does not mix-up gross and net amounts and minimize rounding errors (do not add them).
  * <p>
@@ -26,7 +26,7 @@ public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmount
      * Add up the total amount, the paid amount and open amount of a list of {@link Booking}s.
      * <p>
      * The results of this method can be retrieved by the methods {@link #getTotalAmount()},
-     * {@link #getTotalOpenAmount()} and {@link #getPaidAmount()}.
+     * {@link #getTotalOpenAmount()} and {@link #getTotalPaidAmount()} ()}.
      * <p>
      * Only such {@link Booking}s are mentioned, where the given <code>invoiceRecipientID</code> matches the bookings's
      * invoice recipient ( {@link Booking#getInvoiceRecipientPK()} ), others are ignored.
