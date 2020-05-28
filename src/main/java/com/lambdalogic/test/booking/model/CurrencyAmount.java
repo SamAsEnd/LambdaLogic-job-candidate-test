@@ -73,7 +73,7 @@ public class CurrencyAmount {
      */
     public CurrencyAmount setAmount(BigDecimal amount) {
         if (amount != null) {
-            this.amount = amount.setScale(2);
+            this.amount = amount.setScale(2, RoundingMode.HALF_UP);
         } 
         else {
             this.amount = BigDecimal.ZERO;
