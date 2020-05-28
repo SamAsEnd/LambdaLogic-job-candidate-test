@@ -7,6 +7,8 @@ import com.lambdalogic.test.booking.model.CurrencyAmount;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -55,41 +57,73 @@ public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmount
      */
     @Override
     public void calculate(List<Booking> bookingList, Long invoiceRecipientID) throws InconsistentCurrenciesException {
-        totalAmount = totalPaidAmount = totalOpenAmount = null;
+        resetAllFields();
 
-        Supplier<Stream<Booking>> supplier = () -> bookingList
-                .stream()
-                .filter(booking -> (long) booking.getInvoiceRecipientPK() == (long) invoiceRecipientID)
-                .filter(booking -> !booking.isZero());
+        Supplier<Stream<Booking>> bookingStreamSupplier = getBookingStreamSupplier(bookingList, invoiceRecipientID);
 
-        List<String> currencies = supplier.get()
-                .map(Booking::getCurrency)
-                .distinct()
-                .limit(2)
-                .collect(Collectors.toList());
+        List<String> currencies = getDistinctCurrencies(bookingStreamSupplier);
 
-        if (currencies.size() > 1) {
-            throw new InconsistentCurrenciesException(currencies.get(0), currencies.get(1));
-        } else if (currencies.size() == 0) {
+        if (currencies.isEmpty()) {
             return;
+        }
+
+        if (containsMultipleCurrencies(currencies)) {
+            throw new InconsistentCurrenciesException(currencies.get(0), currencies.get(1));
         }
 
         String currency = currencies.get(0);
 
-        supplier.get()
-                .map(Booking::getTotalAmountGross)
-                .reduce(BigDecimal::add)
-                .ifPresent(bigDecimal -> totalAmount = new CurrencyAmount(bigDecimal, currency));
+        sumUpBookingField(bookingStreamSupplier, Booking::getTotalAmountGross, this::setTotalAmount, currency);
 
-        supplier.get()
-                .map(Booking::getOpenAmount)
-                .reduce(BigDecimal::add)
-                .ifPresent(bigDecimal -> totalOpenAmount = new CurrencyAmount(bigDecimal, currency));
+        sumUpBookingField(bookingStreamSupplier, Booking::getPaidAmount, this::setTotalPaidAmount, currency);
 
-        supplier.get()
-                .map(Booking::getPaidAmount)
+        sumUpBookingField(bookingStreamSupplier, Booking::getOpenAmount, this::setTotalOpenAmount, currency);
+    }
+
+    private void resetAllFields() {
+        setTotalAmount(null);
+        setTotalPaidAmount(null);
+        setTotalOpenAmount(null);
+    }
+
+    private void setTotalAmount(CurrencyAmount totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    private void setTotalPaidAmount(CurrencyAmount totalPaidAmount) {
+        this.totalPaidAmount = totalPaidAmount;
+    }
+
+    private void setTotalOpenAmount(CurrencyAmount totalOpenAmount) {
+        this.totalOpenAmount = totalOpenAmount;
+    }
+
+    private Supplier<Stream<Booking>> getBookingStreamSupplier(List<Booking> bookingList, long invoiceRecipientID) {
+        return () -> bookingList.stream()
+                .filter(booking -> (long) booking.getInvoiceRecipientPK() == (long) invoiceRecipientID)
+                .filter(booking -> !booking.isZero());
+    }
+
+    private List<String> getDistinctCurrencies(Supplier<Stream<Booking>> supplier) {
+        return supplier.get()
+                .map(Booking::getCurrency)
+                .distinct()
+                .limit(2)
+                .collect(Collectors.toList());
+    }
+
+    private boolean containsMultipleCurrencies(List<String> currencies) {
+        return currencies.size() > 1;
+    }
+
+    private void sumUpBookingField(Supplier<Stream<Booking>> bookingStreamSupplier,
+                                   Function<Booking, BigDecimal> bookingToAmountMapper,
+                                   Consumer<CurrencyAmount> thisSetter,
+                                   String currency) {
+        bookingStreamSupplier.get()
+                .map(bookingToAmountMapper)
                 .reduce(BigDecimal::add)
-                .ifPresent(bigDecimal -> totalPaidAmount = new CurrencyAmount(bigDecimal, currency));
+                .ifPresent(bigDecimal -> thisSetter.accept(new CurrencyAmount(bigDecimal, currency)));
     }
 
     /**
