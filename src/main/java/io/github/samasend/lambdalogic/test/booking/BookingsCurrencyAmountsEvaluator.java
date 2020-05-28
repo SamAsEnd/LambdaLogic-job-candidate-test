@@ -49,7 +49,8 @@ public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmount
     public void calculate(List<Booking> bookingList, Long invoiceRecipientID) throws InconsistentCurrenciesException {
         Supplier<Stream<Booking>> supplier = () -> bookingList
                 .stream()
-                .filter(booking -> (long) booking.getInvoiceRecipientPK() == (long) invoiceRecipientID);
+                .filter(booking -> (long) booking.getInvoiceRecipientPK() == (long) invoiceRecipientID)
+                .filter(booking -> !booking.isZero());
 
         List<String> currencies = supplier.get()
                 .map(Booking::getCurrency)
