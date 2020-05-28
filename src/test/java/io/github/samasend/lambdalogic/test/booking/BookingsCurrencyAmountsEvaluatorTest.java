@@ -3,17 +3,16 @@ package io.github.samasend.lambdalogic.test.booking;
 import com.lambdalogic.test.booking.IBookingsCurrencyAmountsEvaluator;
 import com.lambdalogic.test.booking.exception.InconsistentCurrenciesException;
 import com.lambdalogic.test.booking.model.Booking;
+import com.lambdalogic.test.booking.model.CurrencyAmount;
 import com.lambdalogic.test.booking.model.Price;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Random;
+import java.util.*;
 
 import static java.math.BigDecimal.ZERO;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 public class BookingsCurrencyAmountsEvaluatorTest {
@@ -56,6 +55,22 @@ public class BookingsCurrencyAmountsEvaluatorTest {
         assertNull(evaluator.getTotalAmount());
         assertNull(evaluator.getTotalPaidAmount());
         assertNull(evaluator.getTotalOpenAmount());
+    }
+
+    @Test(expected = Test.None.class)
+    public void testCalculation() throws InconsistentCurrenciesException {
+        CurrencyAmount expected0Point12 = new CurrencyAmount(new BigDecimal("0.12"), "€");
+        CurrencyAmount expected0 = new CurrencyAmount(ZERO, "€");
+
+        evaluator.calculate(Collections.singletonList(
+                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false))
+        ), 10001L);
+
+        assertEquals(expected0Point12, evaluator.getTotalAmount());
+
+        assertEquals(expected0, evaluator.getTotalPaidAmount());
+
+        assertEquals(expected0Point12, evaluator.getTotalOpenAmount());
     }
 
     protected Booking getBooking(Long invoiceRecipientID, Price mainPrice) {
