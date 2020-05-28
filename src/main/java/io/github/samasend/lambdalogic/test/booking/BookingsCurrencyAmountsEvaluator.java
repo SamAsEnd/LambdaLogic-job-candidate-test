@@ -5,6 +5,7 @@ import com.lambdalogic.test.booking.exception.InconsistentCurrenciesException;
 import com.lambdalogic.test.booking.model.Booking;
 import com.lambdalogic.test.booking.model.CurrencyAmount;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -25,6 +26,13 @@ import java.util.stream.Stream;
  * An {@link InconsistentCurrenciesException} is thrown, if relevant bookings have different currencies.
  */
 public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmountsEvaluator {
+
+    private CurrencyAmount totalAmount = null;
+
+    private CurrencyAmount totalPaidAmount = null;
+
+    private CurrencyAmount totalOpenAmount = null;
+
     /**
      * Add up the total amount, the paid amount and open amount of a list of {@link Booking}s.
      * <p>
@@ -47,6 +55,8 @@ public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmount
      */
     @Override
     public void calculate(List<Booking> bookingList, Long invoiceRecipientID) throws InconsistentCurrenciesException {
+        totalAmount = totalPaidAmount = totalOpenAmount = null;
+
         Supplier<Stream<Booking>> supplier = () -> bookingList
                 .stream()
                 .filter(booking -> (long) booking.getInvoiceRecipientPK() == (long) invoiceRecipientID)
@@ -60,9 +70,26 @@ public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmount
 
         if (currencies.size() > 1) {
             throw new InconsistentCurrenciesException(currencies.get(0), currencies.get(1));
+        } else if (currencies.size() == 0) {
+            return;
         }
 
-        // ...
+        String currency = currencies.get(0);
+
+        supplier.get()
+                .map(Booking::getTotalAmountGross)
+                .reduce(BigDecimal::add)
+                .ifPresent(bigDecimal -> totalAmount = new CurrencyAmount(bigDecimal, currency));
+
+        supplier.get()
+                .map(Booking::getOpenAmount)
+                .reduce(BigDecimal::add)
+                .ifPresent(bigDecimal -> totalOpenAmount = new CurrencyAmount(bigDecimal, currency));
+
+        supplier.get()
+                .map(Booking::getPaidAmount)
+                .reduce(BigDecimal::add)
+                .ifPresent(bigDecimal -> totalPaidAmount = new CurrencyAmount(bigDecimal, currency));
     }
 
     /**
@@ -73,7 +100,7 @@ public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmount
      */
     @Override
     public CurrencyAmount getTotalAmount() {
-        return null;
+        return totalAmount;
     }
 
     /**
@@ -84,7 +111,7 @@ public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmount
      */
     @Override
     public CurrencyAmount getTotalPaidAmount() {
-        return null;
+        return totalPaidAmount;
     }
 
     /**
@@ -95,6 +122,6 @@ public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmount
      */
     @Override
     public CurrencyAmount getTotalOpenAmount() {
-        return null;
+        return totalOpenAmount;
     }
 }
