@@ -1,0 +1,44 @@
+This is the description of the "Job Candidate Test" of the LambdaLogic GmbH (www.lambdalogic.de).
+
+It is intended to be solved by job candidates for the software development department of LambdaLogic.
+We use this test to assess the programming skills of new Java developers.
+
+The test is based on a real-world problem that we have encountered in our software Regasus.
+
+
+The task consists of 2 parts:
+
+
+1. Implement the interface IBookingsCurrencyAmountsEvaluator to calculate the 
+	- total amount, 
+	- the total paid amount and the 
+	- total open amount
+of a list of bookings for a certain invoice recipient.
+
+When doing the calculation take care that you don't mix-up gross and net amounts and do not add up rounding errors!
+
+For example the gross amount of 0.10 € net with a tax rate of 19% is 0.10 € * 1.19 = 0.119 € ≈ 0.12 €.
+But the sum of 10 times 0.10 € net with a tax rate of 19% is not 10 * 0.12 € = 1.20 € but (0.10 € * 10) * 1.19 = 1.19 €.
+
+To ensure this, you have to read the JavaDocs of the given classes carefully!
+
+
+2. Write JUnit tests to verify your implementation.
+
+
+Use the given classes but do not change them, especially not the interface. 
+
+Your code should be 
+- correct,
+- well tested,
+- well formatted,
+- well documented and 
+- easy to understand. 
+
+
+Please send your Java source code to s.warning@lambdalogic.de.
+
+Don't hesitate to contact Sacha Warning (s.warning@lambdalogic.de) if you have any questions!
+
+
+Good luck!
