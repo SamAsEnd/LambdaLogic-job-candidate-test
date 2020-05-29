@@ -29,10 +29,22 @@ import java.util.stream.Stream;
  */
 public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmountsEvaluator {
 
+    /**
+     * a non-thread safe storage of {@link #calculate} results
+     * for subsequent access through {@link #getTotalAmount()}
+     */
     private CurrencyAmount totalAmount = null;
 
+    /**
+     * a non-thread safe storage of {@link #calculate} results
+     * for subsequent access through {@link #getTotalPaidAmount()} ()}
+     */
     private CurrencyAmount totalPaidAmount = null;
 
+    /**
+     * a non-thread safe storage of {@link #calculate} results
+     * for subsequent access through {@link #getTotalOpenAmount()} ()}
+     */
     private CurrencyAmount totalOpenAmount = null;
 
     /**
