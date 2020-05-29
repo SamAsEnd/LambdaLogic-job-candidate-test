@@ -30,19 +30,19 @@ import java.util.stream.Collectors;
 public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmountsEvaluator {
 
     /**
-     * a non-thread safe storage of {@link #calculate} results
+     * a non-thread safe storage of {@link #calculate} result
      * for subsequent access through {@link #getTotalAmount()}
      */
     private CurrencyAmount totalAmount = null;
 
     /**
-     * a non-thread safe storage of {@link #calculate} results
+     * a non-thread safe storage of {@link #calculate} result
      * for subsequent access through {@link #getTotalPaidAmount()} ()}
      */
     private CurrencyAmount totalPaidAmount = null;
 
     /**
-     * a non-thread safe storage of {@link #calculate} results
+     * a non-thread safe storage of {@link #calculate} result
      * for subsequent access through {@link #getTotalOpenAmount()} ()}
      */
     private CurrencyAmount totalOpenAmount = null;
