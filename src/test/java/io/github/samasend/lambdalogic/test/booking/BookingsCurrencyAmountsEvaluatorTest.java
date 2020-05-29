@@ -54,7 +54,7 @@ public class BookingsCurrencyAmountsEvaluatorTest {
     }
 
     @Test(expected = Test.None.class)
-    public void emptyCalculationGivesNull() throws InconsistentCurrenciesException {
+    public void nullForEmptyCalculations() throws InconsistentCurrenciesException {
         evaluator.calculate(new ArrayList<>(), 10001L);
 
         assertNull(evaluator.getTotalAmount());
@@ -63,7 +63,7 @@ public class BookingsCurrencyAmountsEvaluatorTest {
     }
 
     @Test(expected = Test.None.class)
-    public void testCalculation() throws InconsistentCurrenciesException {
+    public void doCalculate() throws InconsistentCurrenciesException {
         CurrencyAmount expected0Point12 = new CurrencyAmount(new BigDecimal("0.12"), "€");
         CurrencyAmount expected0 = new CurrencyAmount(ZERO, "€");
 
@@ -79,7 +79,7 @@ public class BookingsCurrencyAmountsEvaluatorTest {
     }
 
     @Test(expected = Test.None.class)
-    public void testCalculationHandleRoundingProblems() throws InconsistentCurrenciesException {
+    public void noRoundingProblems() throws InconsistentCurrenciesException {
         CurrencyAmount expected1Point19 = new CurrencyAmount(new BigDecimal("1.19"), "€");
         CurrencyAmount expected0 = new CurrencyAmount(ZERO, "€");
 
@@ -105,6 +105,23 @@ public class BookingsCurrencyAmountsEvaluatorTest {
         assertEquals(expected0, evaluator.getTotalPaidAmount());
 
         assertEquals(expected1Point19, evaluator.getTotalOpenAmount());
+    }
+
+    @Test(expected = Test.None.class)
+    public void wontMixGrossAndNetValues() throws InconsistentCurrenciesException {
+        CurrencyAmount expected0Point22 = new CurrencyAmount(new BigDecimal("0.22"), "€");
+        CurrencyAmount expected0 = new CurrencyAmount(ZERO, "€");
+
+        evaluator.calculate(Arrays.asList(
+                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), true))
+        ), 10001L);
+
+        assertEquals(expected0Point22, evaluator.getTotalAmount());
+
+        assertEquals(expected0, evaluator.getTotalPaidAmount());
+
+        assertEquals(expected0Point22, evaluator.getTotalOpenAmount());
     }
 
     protected Booking getBooking(Long invoiceRecipientID, Price mainPrice) {
