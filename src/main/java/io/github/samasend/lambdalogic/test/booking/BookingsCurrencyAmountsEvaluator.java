@@ -83,11 +83,11 @@ public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmount
 
         final String theCurrency = currencies.get(0);
 
-        pluckFieildSumItThenSetItToThis(filteredBookings, Booking::getTotalAmountGross, this::setTotalAmount, theCurrency);
+        pluckFieldSumItThenSetItToThis(filteredBookings, Booking::getTotalAmountGross, this::setTotalAmount, theCurrency);
 
-        pluckFieildSumItThenSetItToThis(filteredBookings, Booking::getPaidAmount, this::setTotalPaidAmount, theCurrency);
+        pluckFieldSumItThenSetItToThis(filteredBookings, Booking::getPaidAmount, this::setTotalPaidAmount, theCurrency);
 
-        pluckFieildSumItThenSetItToThis(filteredBookings, Booking::getOpenAmount, this::setTotalOpenAmount, theCurrency);
+        pluckFieldSumItThenSetItToThis(filteredBookings, Booking::getOpenAmount, this::setTotalOpenAmount, theCurrency);
     }
 
     private void resetAllFields() {
@@ -127,10 +127,10 @@ public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmount
         return currencies.size() > 1;
     }
 
-    private void pluckFieildSumItThenSetItToThis(List<Booking> subject,
-                                                 Function<Booking, BigDecimal> plucker,
-                                                 Consumer<CurrencyAmount> setter,
-                                                 String currency) {
+    private void pluckFieldSumItThenSetItToThis(List<Booking> subject,
+                                                Function<Booking, BigDecimal> plucker,
+                                                Consumer<CurrencyAmount> setter,
+                                                String currency) {
         subject.stream()
                 .map(plucker)
                 .reduce(BigDecimal::add)
