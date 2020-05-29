@@ -9,9 +9,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Implementations of this interface are intended for adding up the total amount, the paid amount and open amount of a
@@ -71,25 +69,25 @@ public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmount
     public void calculate(List<Booking> bookingList, Long invoiceRecipientID) throws InconsistentCurrenciesException {
         resetAllFields();
 
-        Supplier<Stream<Booking>> bookingStreamSupplier = getBookingStreamSupplier(bookingList, invoiceRecipientID);
+        final List<Booking> filteredBookings = filterBookings(bookingList, invoiceRecipientID);
 
-        List<String> currencies = getDistinctCurrencies(bookingStreamSupplier);
-
-        if (currencies.isEmpty()) {
+        if (filteredBookings.isEmpty()) {
             return;
         }
+
+        final List<String> currencies = getDistinctCurrencies(filteredBookings);
 
         if (containsMultipleCurrencies(currencies)) {
             throw new InconsistentCurrenciesException(currencies.get(0), currencies.get(1));
         }
 
-        String currency = currencies.get(0);
+        final String theCurrency = currencies.get(0);
 
-        sumUpBookingField(bookingStreamSupplier, Booking::getTotalAmountGross, this::setTotalAmount, currency);
+        pluckFieildSumItThenSetItToThis(filteredBookings, Booking::getTotalAmountGross, this::setTotalAmount, theCurrency);
 
-        sumUpBookingField(bookingStreamSupplier, Booking::getPaidAmount, this::setTotalPaidAmount, currency);
+        pluckFieildSumItThenSetItToThis(filteredBookings, Booking::getPaidAmount, this::setTotalPaidAmount, theCurrency);
 
-        sumUpBookingField(bookingStreamSupplier, Booking::getOpenAmount, this::setTotalOpenAmount, currency);
+        pluckFieildSumItThenSetItToThis(filteredBookings, Booking::getOpenAmount, this::setTotalOpenAmount, theCurrency);
     }
 
     private void resetAllFields() {
@@ -110,14 +108,15 @@ public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmount
         this.totalOpenAmount = totalOpenAmount;
     }
 
-    private Supplier<Stream<Booking>> getBookingStreamSupplier(List<Booking> bookingList, long invoiceRecipientID) {
-        return () -> bookingList.stream()
-                .filter(booking -> (long) booking.getInvoiceRecipientPK() == (long) invoiceRecipientID)
-                .filter(booking -> !booking.isZero());
+    private List<Booking> filterBookings(List<Booking> bookingList, long invoiceRecipientID) {
+        return bookingList.stream()
+                .filter(booking -> (long) booking.getInvoiceRecipientPK() == invoiceRecipientID)
+                .filter(booking -> !booking.isZero())
+                .collect(Collectors.toUnmodifiableList());
     }
 
-    private List<String> getDistinctCurrencies(Supplier<Stream<Booking>> supplier) {
-        return supplier.get()
+    private List<String> getDistinctCurrencies(final List<Booking> bookings) {
+        return bookings.stream()
                 .map(Booking::getCurrency)
                 .distinct()
                 .limit(2)
@@ -128,14 +127,14 @@ public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmount
         return currencies.size() > 1;
     }
 
-    private void sumUpBookingField(Supplier<Stream<Booking>> bookingStreamSupplier,
-                                   Function<Booking, BigDecimal> bookingToAmountMapper,
-                                   Consumer<CurrencyAmount> thisSetter,
-                                   String currency) {
-        bookingStreamSupplier.get()
-                .map(bookingToAmountMapper)
+    private void pluckFieildSumItThenSetItToThis(List<Booking> subject,
+                                                 Function<Booking, BigDecimal> plucker,
+                                                 Consumer<CurrencyAmount> setter,
+                                                 String currency) {
+        subject.stream()
+                .map(plucker)
                 .reduce(BigDecimal::add)
-                .ifPresent(bigDecimal -> thisSetter.accept(new CurrencyAmount(bigDecimal, currency)));
+                .ifPresent(bigDecimal -> setter.accept(new CurrencyAmount(bigDecimal, currency)));
     }
 
     /**
