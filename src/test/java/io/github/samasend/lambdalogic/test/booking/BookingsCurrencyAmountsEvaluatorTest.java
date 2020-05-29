@@ -5,7 +5,6 @@ import com.lambdalogic.test.booking.exception.InconsistentCurrenciesException;
 import com.lambdalogic.test.booking.model.Booking;
 import com.lambdalogic.test.booking.model.CurrencyAmount;
 import com.lambdalogic.test.booking.model.Price;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
@@ -20,15 +19,10 @@ public class BookingsCurrencyAmountsEvaluatorTest {
     public static final long MY_INVOICE_RECIPIENT_ID = 10001L;
     public static final long OTHER_INVOICE_RECIPIENT_ID = 10002L;
 
-    protected IBookingsCurrencyAmountsEvaluator evaluator;
-
-    @Before
-    public void setUp() throws Exception {
-        evaluator = new BookingsCurrencyAmountsEvaluator();
-    }
-
     @Test(expected = InconsistentCurrenciesException.class)
     public void throwExceptionWhenGivenInconsistentCurrencies() throws InconsistentCurrenciesException {
+        IBookingsCurrencyAmountsEvaluator evaluator = new BookingsCurrencyAmountsEvaluator();
+
         evaluator.calculate(Arrays.asList(
                 getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("100"), "ብር", ZERO, true)),
                 getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("100"), "€", ZERO, true))
@@ -39,6 +33,8 @@ public class BookingsCurrencyAmountsEvaluatorTest {
 
     @Test(expected = Test.None.class)
     public void ignoreDifferentInvoiceRecipientID() throws InconsistentCurrenciesException {
+        IBookingsCurrencyAmountsEvaluator evaluator = new BookingsCurrencyAmountsEvaluator();
+
         evaluator.calculate(Arrays.asList(
                 getBooking(MY_INVOICE_RECIPIENT_ID, new Price("ብር")),
                 getBooking(OTHER_INVOICE_RECIPIENT_ID, new Price("€"))
@@ -47,6 +43,8 @@ public class BookingsCurrencyAmountsEvaluatorTest {
 
     @Test(expected = Test.None.class)
     public void ignoreZeroAmountAndZeroPaidBooking() throws InconsistentCurrenciesException {
+        IBookingsCurrencyAmountsEvaluator evaluator = new BookingsCurrencyAmountsEvaluator();
+
         evaluator.calculate(Arrays.asList(
                 getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("100"), "€", ZERO, true)),
                 getBooking(MY_INVOICE_RECIPIENT_ID, new Price(ZERO, "ብር", ZERO, false), ZERO)
@@ -55,6 +53,8 @@ public class BookingsCurrencyAmountsEvaluatorTest {
 
     @Test(expected = Test.None.class)
     public void nullForEmptyCalculations() throws InconsistentCurrenciesException {
+        IBookingsCurrencyAmountsEvaluator evaluator = new BookingsCurrencyAmountsEvaluator();
+
         evaluator.calculate(new ArrayList<>(), MY_INVOICE_RECIPIENT_ID);
 
         assertNull(evaluator.getTotalAmount());
@@ -64,6 +64,8 @@ public class BookingsCurrencyAmountsEvaluatorTest {
 
     @Test(expected = Test.None.class)
     public void doCalculate() throws InconsistentCurrenciesException {
+        IBookingsCurrencyAmountsEvaluator evaluator = new BookingsCurrencyAmountsEvaluator();
+
         CurrencyAmount expectedTotalAndOpenAmount = new CurrencyAmount(new BigDecimal("0.12"), "ብር");
         CurrencyAmount expectedPaidAmount = new CurrencyAmount(ZERO, "ብር");
 
@@ -80,6 +82,8 @@ public class BookingsCurrencyAmountsEvaluatorTest {
 
     @Test(expected = Test.None.class)
     public void noRoundingProblems() throws InconsistentCurrenciesException {
+        IBookingsCurrencyAmountsEvaluator evaluator = new BookingsCurrencyAmountsEvaluator();
+
         CurrencyAmount expectedTotalAndOpenAmount = new CurrencyAmount(new BigDecimal("1.19"), "€");
         CurrencyAmount expectedPaidAmount = new CurrencyAmount(ZERO, "€");
 
@@ -109,6 +113,8 @@ public class BookingsCurrencyAmountsEvaluatorTest {
 
     @Test(expected = Test.None.class)
     public void wontMixGrossAndNetValues() throws InconsistentCurrenciesException {
+        IBookingsCurrencyAmountsEvaluator evaluator = new BookingsCurrencyAmountsEvaluator();
+
         CurrencyAmount expectedTotalAndOpenAmount = new CurrencyAmount(new BigDecimal("0.22"), "ብር");
         CurrencyAmount expectedPaidAmount = new CurrencyAmount(ZERO, "ብር");
 
@@ -126,6 +132,8 @@ public class BookingsCurrencyAmountsEvaluatorTest {
 
     @Test(expected = Test.None.class)
     public void deductPaidAmount() throws InconsistentCurrenciesException {
+        IBookingsCurrencyAmountsEvaluator evaluator = new BookingsCurrencyAmountsEvaluator();
+
         CurrencyAmount expectedGross = new CurrencyAmount(new BigDecimal("127.65"), "ብር");
         CurrencyAmount expectedPaid = new CurrencyAmount(new BigDecimal("30"), "ብር");
         CurrencyAmount expectedOpen = new CurrencyAmount(new BigDecimal("97.65"), "ብር");
