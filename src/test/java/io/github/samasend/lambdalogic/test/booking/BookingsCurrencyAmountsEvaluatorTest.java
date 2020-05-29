@@ -11,6 +11,7 @@ import org.junit.Test;
 import java.math.BigDecimal;
 import java.util.*;
 
+import static java.math.BigDecimal.TEN;
 import static java.math.BigDecimal.ZERO;
 import static org.junit.Assert.*;
 
@@ -122,6 +123,27 @@ public class BookingsCurrencyAmountsEvaluatorTest {
         assertEquals(expected0, evaluator.getTotalPaidAmount());
 
         assertEquals(expected0Point22, evaluator.getTotalOpenAmount());
+    }
+
+    @Test(expected = Test.None.class)
+    public void deductPaidAmount() throws InconsistentCurrenciesException {
+        CurrencyAmount expectedGross = new CurrencyAmount(new BigDecimal("127.65"), "ብር");
+        CurrencyAmount expectedPaid = new CurrencyAmount(new BigDecimal("30"), "ብር");
+        CurrencyAmount expectedOpen = new CurrencyAmount(new BigDecimal("97.65"), "ብር");
+
+        BigDecimal taxRate = new BigDecimal(15);
+
+        evaluator.calculate(Arrays.asList(
+                getBooking(10001L, new Price(new BigDecimal("100"), "ብር", taxRate, false), TEN),
+                getBooking(10001L, new Price(new BigDecimal("10"), "ብር", taxRate, false), TEN),
+                getBooking(10001L, new Price(new BigDecimal("1"), "ብር", taxRate, false), TEN)
+        ), 10001L);
+
+        assertEquals(expectedGross, evaluator.getTotalAmount());
+
+        assertEquals(expectedPaid, evaluator.getTotalPaidAmount());
+
+        assertEquals(expectedOpen, evaluator.getTotalOpenAmount());
     }
 
     protected Booking getBooking(Long invoiceRecipientID, Price mainPrice) {
