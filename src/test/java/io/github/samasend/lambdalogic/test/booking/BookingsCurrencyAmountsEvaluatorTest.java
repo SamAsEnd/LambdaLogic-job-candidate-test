@@ -17,6 +17,9 @@ import static org.junit.Assert.*;
 
 public class BookingsCurrencyAmountsEvaluatorTest {
 
+    public static final long MY_INVOICE_RECIPIENT_ID = 10001L;
+    public static final long OTHER_INVOICE_RECIPIENT_ID = 10002L;
+
     protected IBookingsCurrencyAmountsEvaluator evaluator;
 
     @Before
@@ -27,9 +30,9 @@ public class BookingsCurrencyAmountsEvaluatorTest {
     @Test(expected = InconsistentCurrenciesException.class)
     public void throwExceptionWhenGivenInconsistentCurrencies() throws InconsistentCurrenciesException {
         evaluator.calculate(Arrays.asList(
-                getBooking(10001L, new Price(new BigDecimal("100"), "ETB", ZERO, true)),
-                getBooking(10001L, new Price(new BigDecimal("100"), "USD", ZERO, true))
-        ), 10001L);
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("100"), "ብር", ZERO, true)),
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("100"), "€", ZERO, true))
+        ), MY_INVOICE_RECIPIENT_ID);
 
         fail("Should NOT reach here");
     }
@@ -37,26 +40,22 @@ public class BookingsCurrencyAmountsEvaluatorTest {
     @Test(expected = Test.None.class)
     public void ignoreDifferentInvoiceRecipientID() throws InconsistentCurrenciesException {
         evaluator.calculate(Arrays.asList(
-                getBooking(10001L, new Price("USD")),
-                getBooking(10002L, new Price("ETB"))
-        ), 10001L);
-
-        assertTrue(true);
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price("ብር")),
+                getBooking(OTHER_INVOICE_RECIPIENT_ID, new Price("€"))
+        ), MY_INVOICE_RECIPIENT_ID);
     }
 
     @Test(expected = Test.None.class)
     public void ignoreZeroAmountAndZeroPaidBooking() throws InconsistentCurrenciesException {
         evaluator.calculate(Arrays.asList(
-                getBooking(10001L, new Price(new BigDecimal("100"), "ETB", ZERO, true)),
-                getBooking(10001L, new Price(ZERO, "USD", ZERO, false), ZERO)
-        ), 10001L);
-
-        assertTrue(true);
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("100"), "€", ZERO, true)),
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(ZERO, "ብር", ZERO, false), ZERO)
+        ), MY_INVOICE_RECIPIENT_ID);
     }
 
     @Test(expected = Test.None.class)
     public void nullForEmptyCalculations() throws InconsistentCurrenciesException {
-        evaluator.calculate(new ArrayList<>(), 10001L);
+        evaluator.calculate(new ArrayList<>(), MY_INVOICE_RECIPIENT_ID);
 
         assertNull(evaluator.getTotalAmount());
         assertNull(evaluator.getTotalPaidAmount());
@@ -65,64 +64,64 @@ public class BookingsCurrencyAmountsEvaluatorTest {
 
     @Test(expected = Test.None.class)
     public void doCalculate() throws InconsistentCurrenciesException {
-        CurrencyAmount expected0Point12 = new CurrencyAmount(new BigDecimal("0.12"), "€");
-        CurrencyAmount expected0 = new CurrencyAmount(ZERO, "€");
+        CurrencyAmount expectedTotalAndOpenAmount = new CurrencyAmount(new BigDecimal("0.12"), "ብር");
+        CurrencyAmount expectedPaidAmount = new CurrencyAmount(ZERO, "ብር");
 
         evaluator.calculate(Collections.singletonList(
-                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false))
-        ), 10001L);
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("0.10"), "ብር", new BigDecimal(19), false))
+        ), MY_INVOICE_RECIPIENT_ID);
 
-        assertEquals(expected0Point12, evaluator.getTotalAmount());
+        assertEquals(expectedTotalAndOpenAmount, evaluator.getTotalAmount());
 
-        assertEquals(expected0, evaluator.getTotalPaidAmount());
+        assertEquals(expectedPaidAmount, evaluator.getTotalPaidAmount());
 
-        assertEquals(expected0Point12, evaluator.getTotalOpenAmount());
+        assertEquals(expectedTotalAndOpenAmount, evaluator.getTotalOpenAmount());
     }
 
     @Test(expected = Test.None.class)
     public void noRoundingProblems() throws InconsistentCurrenciesException {
-        CurrencyAmount expected1Point19 = new CurrencyAmount(new BigDecimal("1.19"), "€");
-        CurrencyAmount expected0 = new CurrencyAmount(ZERO, "€");
+        CurrencyAmount expectedTotalAndOpenAmount = new CurrencyAmount(new BigDecimal("1.19"), "€");
+        CurrencyAmount expectedPaidAmount = new CurrencyAmount(ZERO, "€");
 
         evaluator.calculate(Arrays.asList(
-                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
-                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
 
-                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
-                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
 
-                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
-                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
 
-                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
-                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
 
-                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
-                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false))
-        ), 10001L);
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false))
+        ), MY_INVOICE_RECIPIENT_ID);
 
-        assertEquals(expected1Point19, evaluator.getTotalAmount());
+        assertEquals(expectedTotalAndOpenAmount, evaluator.getTotalAmount());
 
-        assertEquals(expected0, evaluator.getTotalPaidAmount());
+        assertEquals(expectedPaidAmount, evaluator.getTotalPaidAmount());
 
-        assertEquals(expected1Point19, evaluator.getTotalOpenAmount());
+        assertEquals(expectedTotalAndOpenAmount, evaluator.getTotalOpenAmount());
     }
 
     @Test(expected = Test.None.class)
     public void wontMixGrossAndNetValues() throws InconsistentCurrenciesException {
-        CurrencyAmount expected0Point22 = new CurrencyAmount(new BigDecimal("0.22"), "€");
-        CurrencyAmount expected0 = new CurrencyAmount(ZERO, "€");
+        CurrencyAmount expectedTotalAndOpenAmount = new CurrencyAmount(new BigDecimal("0.22"), "ብር");
+        CurrencyAmount expectedPaidAmount = new CurrencyAmount(ZERO, "ብር");
 
         evaluator.calculate(Arrays.asList(
-                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), false)),
-                getBooking(10001L, new Price(new BigDecimal("0.10"), "€", new BigDecimal(19), true))
-        ), 10001L);
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("0.10"), "ብር", new BigDecimal(19), false)),
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("0.10"), "ብር", new BigDecimal(19), true))
+        ), MY_INVOICE_RECIPIENT_ID);
 
-        assertEquals(expected0Point22, evaluator.getTotalAmount());
+        assertEquals(expectedTotalAndOpenAmount, evaluator.getTotalAmount());
 
-        assertEquals(expected0, evaluator.getTotalPaidAmount());
+        assertEquals(expectedPaidAmount, evaluator.getTotalPaidAmount());
 
-        assertEquals(expected0Point22, evaluator.getTotalOpenAmount());
+        assertEquals(expectedTotalAndOpenAmount, evaluator.getTotalOpenAmount());
     }
 
     @Test(expected = Test.None.class)
@@ -134,10 +133,10 @@ public class BookingsCurrencyAmountsEvaluatorTest {
         BigDecimal taxRate = new BigDecimal(15);
 
         evaluator.calculate(Arrays.asList(
-                getBooking(10001L, new Price(new BigDecimal("100"), "ብር", taxRate, false), TEN),
-                getBooking(10001L, new Price(new BigDecimal("10"), "ብር", taxRate, false), TEN),
-                getBooking(10001L, new Price(new BigDecimal("1"), "ብር", taxRate, false), TEN)
-        ), 10001L);
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("100"), "ብር", taxRate, false), TEN),
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("10"), "ብር", taxRate, false), TEN),
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("1"), "ብር", taxRate, false), TEN)
+        ), MY_INVOICE_RECIPIENT_ID);
 
         assertEquals(expectedGross, evaluator.getTotalAmount());
 
