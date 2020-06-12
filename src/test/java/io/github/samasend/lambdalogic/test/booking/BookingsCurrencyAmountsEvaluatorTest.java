@@ -9,9 +9,10 @@ import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import static java.math.BigDecimal.TEN;
-import static java.math.BigDecimal.ZERO;
+import static java.math.BigDecimal.*;
 import static org.junit.Assert.*;
 
 public class BookingsCurrencyAmountsEvaluatorTest {
@@ -151,6 +152,28 @@ public class BookingsCurrencyAmountsEvaluatorTest {
         assertEquals(expectedPaid, evaluator.getTotalPaidAmount());
 
         assertEquals(expectedOpen, evaluator.getTotalOpenAmount());
+    }
+
+    @Test(expected = Test.None.class)
+    public void with100equalBookingsWhereThe1stAdditionalAmountIsEmpty() throws InconsistentCurrenciesException {
+        IBookingsCurrencyAmountsEvaluator evaluator = new BookingsCurrencyAmountsEvaluator();
+
+        CurrencyAmount expectedTotal = new CurrencyAmount(new BigDecimal("1110"), "ብር");
+        CurrencyAmount expectedOpen = new CurrencyAmount(new BigDecimal("1000"), "ብር");
+        CurrencyAmount expectedPaid = new CurrencyAmount(new BigDecimal("110"), "ብር");
+
+        List<Booking> bookings = IntStream.rangeClosed(1, 100)
+                .mapToObj(i -> getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("10"), "ብር", ZERO, false)))
+                .peek(booking -> booking.setAdd1Price(null))
+                .peek(booking -> booking.setAdd2Price(new Price(ONE, "ብር", TEN, false)))
+                .peek(booking -> booking.setPaidAmount(new BigDecimal("1.10")))
+                .collect(Collectors.toList());
+
+        evaluator.calculate(bookings, MY_INVOICE_RECIPIENT_ID);
+
+        assertEquals(evaluator.getTotalAmount(), expectedTotal);
+        assertEquals(evaluator.getTotalOpenAmount(), expectedOpen);
+        assertEquals(evaluator.getTotalPaidAmount(), expectedPaid);
     }
 
     protected Booking getBooking(Long invoiceRecipientID, Price mainPrice) {
