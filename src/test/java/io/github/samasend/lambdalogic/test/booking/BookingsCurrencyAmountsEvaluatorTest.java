@@ -176,6 +176,46 @@ public class BookingsCurrencyAmountsEvaluatorTest {
         assertEquals(evaluator.getTotalPaidAmount(), expectedPaid);
     }
 
+    @Test(expected = Test.None.class)
+    public void with100equalBookingsWhereThe2ndAdditionalAmountIsEmpty() throws InconsistentCurrenciesException {
+        IBookingsCurrencyAmountsEvaluator evaluator = new BookingsCurrencyAmountsEvaluator();
+
+        CurrencyAmount expectedTotal = new CurrencyAmount(new BigDecimal("1110"), "ብር");
+        CurrencyAmount expectedOpen = new CurrencyAmount(new BigDecimal("1000"), "ብር");
+        CurrencyAmount expectedPaid = new CurrencyAmount(new BigDecimal("110"), "ብር");
+
+        List<Booking> bookings = IntStream.rangeClosed(1, 100)
+                .mapToObj(i -> getBooking(MY_INVOICE_RECIPIENT_ID, new Price(new BigDecimal("10"), "ብር", ZERO, false)))
+                .peek(booking -> booking.setAdd1Price(new Price(ONE, "ብር", TEN, false)))
+                .peek(booking -> booking.setAdd2Price(null))
+                .peek(booking -> booking.setPaidAmount(new BigDecimal("1.10")))
+                .collect(Collectors.toList());
+
+        evaluator.calculate(bookings, MY_INVOICE_RECIPIENT_ID);
+
+        assertEquals(evaluator.getTotalAmount(), expectedTotal);
+        assertEquals(evaluator.getTotalOpenAmount(), expectedOpen);
+        assertEquals(evaluator.getTotalPaidAmount(), expectedPaid);
+    }
+
+    @Test(expected = Test.None.class)
+    public void with2bookings() throws InconsistentCurrenciesException {
+        IBookingsCurrencyAmountsEvaluator evaluator = new BookingsCurrencyAmountsEvaluator();
+
+        CurrencyAmount expectedTotal = new CurrencyAmount(new BigDecimal("10"), "€");
+        CurrencyAmount expectedOpen = new CurrencyAmount(new BigDecimal("9"), "€");
+        CurrencyAmount expectedPaid = new CurrencyAmount(new BigDecimal("1"), "€");
+
+        evaluator.calculate(Arrays.asList(
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(TEN, "€", Price.ZERO, true)),
+                getBooking(MY_INVOICE_RECIPIENT_ID, new Price(ZERO, "€", ZERO, true), ONE)
+        ), MY_INVOICE_RECIPIENT_ID);
+
+        assertEquals(evaluator.getTotalAmount(), expectedTotal);
+        assertEquals(evaluator.getTotalOpenAmount(), expectedOpen);
+        assertEquals(evaluator.getTotalPaidAmount(), expectedPaid);
+    }
+
     protected Booking getBooking(Long invoiceRecipientID, Price mainPrice) {
         return getBooking(invoiceRecipientID, mainPrice, null);
     }

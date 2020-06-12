@@ -157,7 +157,7 @@ public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmount
 
                 // filter non zero amounts
                 // could also user a method reference {Booking::isZero} with a Predicate.negate()
-                .filter(booking -> !booking.isZero())
+                .filter(booking -> !(booking.isZero() && booking.getPaidAmount().equals(BigDecimal.ZERO)))
 
                 // monkey patching:- Line 264 on Price.java
                 .peek(booking -> {
