@@ -261,7 +261,7 @@ public class Price {
 			amountGross = amount;
 			if (!gross && taxRateDiv100Add1 != null) {
 				amountGross = amountGross.multiply(taxRateDiv100Add1);
-//				amountGross = amountGross.setScale(2, RoundingMode.HALF_UP);
+				amountGross = amountGross.setScale(2, RoundingMode.HALF_UP);
 			}
 		}
 		return amountGross;

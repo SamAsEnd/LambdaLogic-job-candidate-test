@@ -159,6 +159,14 @@ public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmount
                 // could also user a method reference {Booking::isZero} with a Predicate.negate()
                 .filter(booking -> !booking.isZero())
 
+                // monkey patching:- Line 264 on Price.java
+                .peek(booking -> {
+                    booking.setMainPrice(new MonkeyPatchingPrice(booking.getMainPrice()));
+                    booking.setAdd1Price(new MonkeyPatchingPrice(booking.getAdd1Price()));
+                    booking.setAdd2Price(new MonkeyPatchingPrice(booking.getAdd2Price()));
+                    booking.setCancelFeePrice(new MonkeyPatchingPrice(booking.getCancelFeePrice()));
+                })
+
                 // collect it to unmodifiable list
                 .collect(Collectors.toUnmodifiableList());
     }
