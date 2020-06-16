@@ -4,6 +4,7 @@ import com.lambdalogic.test.booking.IBookingsCurrencyAmountsEvaluator;
 import com.lambdalogic.test.booking.exception.InconsistentCurrenciesException;
 import com.lambdalogic.test.booking.model.Booking;
 import com.lambdalogic.test.booking.model.CurrencyAmount;
+import com.lambdalogic.test.booking.model.Price;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -28,6 +29,34 @@ import java.util.stream.Collectors;
  * An {@link InconsistentCurrenciesException} is thrown, if relevant bookings have different currencies.
  */
 public class BookingsCurrencyAmountsEvaluator implements IBookingsCurrencyAmountsEvaluator {
+
+    private static class MonkeyPatchingPrice extends Price {
+
+        protected MonkeyPatchingPrice(Price price) {
+            super(price.getAmount(), price.getCurrency(), price.getTaxRate(), price.isGross());
+        }
+
+        /**
+         * Return the amount gross (which is a rounded value if gross == false).
+         *
+         * <p>
+         * Programmatically comment line no 264 on Price.java
+         *
+         * @return
+         */
+        public BigDecimal getAmountGross() {
+            BigDecimal amountGross = null;
+
+            if (amount != null) {
+                amountGross = amount;
+                if (!gross && taxRateDiv100Add1 != null) {
+                    amountGross = amountGross.multiply(taxRateDiv100Add1);
+                }
+            }
+
+            return amountGross;
+        }
+    }
 
     /**
      * a non-thread safe storage of {@link #calculate} result
